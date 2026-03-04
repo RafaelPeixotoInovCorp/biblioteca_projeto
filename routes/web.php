@@ -48,6 +48,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/livro/{id}/{slug?}', [PublicLivroController::class, 'show'])->name('livros.show');
     });
 
+    // Rotas de Requisições
+    Route::middleware(['auth', 'verified'])->group(function () {
+        Route::resource('requisicoes', RequisicaoController::class)->except(['edit', 'update']);
+        Route::put('/requisicoes/{requisicao}/confirmar-entrega', [RequisicaoController::class, 'confirmarEntrega'])
+            ->name('requisicoes.confirmar-entrega');
+        Route::delete('/requisicoes/{requisicao}/cancelar', [RequisicaoController::class, 'cancelar'])
+            ->name('requisicoes.cancelar');
+
+        // Rota para criar requisição a partir de um livro
+        Route::get('/livros/{livro}/requisitar', [RequisicaoController::class, 'create'])
+            ->name('livros.requisitar');
+    });
+
     // PAINEL DE ADMINISTRAÇÃO
     Route::prefix('admin')->name('admin.')->group(function () {
 

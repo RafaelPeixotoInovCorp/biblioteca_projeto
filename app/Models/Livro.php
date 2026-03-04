@@ -54,4 +54,26 @@ class Livro extends Model
     {
         return $this->belongsToMany(Autor::class, 'autor_livro');
     }
+
+    // Relacionamento com requisições
+    public function requisicoes()
+    {
+        return $this->hasMany(Requisicao::class);
+    }
+
+    // Verificar se livro está disponível
+    public function isDisponivel()
+    {
+        return $this->disponivel && !$this->requisicoes()
+                ->whereIn('status', ['pendente', 'aprovado'])
+                ->exists();
+    }
+
+    // Obter requisição ativa (se existir)
+    public function getRequisicaoAtiva()
+    {
+        return $this->requisicoes()
+            ->whereIn('status', ['pendente', 'aprovado'])
+            ->first();
+    }
 }

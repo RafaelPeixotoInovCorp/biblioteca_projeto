@@ -179,4 +179,38 @@ class User extends Authenticatable
     {
         return $this->canViewBooks() || $this->canViewAuthors() || $this->canViewPublishers();
     }
+
+    // Relacionamento com requisições (como cidadão)
+    public function requisicoes()
+    {
+        return $this->hasMany(Requisicao::class, 'cidadao_id');
+    }
+
+    // Relacionamento com requisições (como admin)
+    public function requisicoesGerenciadas()
+    {
+        return $this->hasMany(Requisicao::class, 'admin_id');
+    }
+
+    // Verificar se pode requisitar mais livros
+    public function podeRequisitar()
+    {
+        if ($this->isAdmin()) {
+            return true; // Admin não tem limite
+        }
+
+        $requisicoesAtivas = $this->requisicoes()
+            ->whereIn('status', ['pendente', 'aprovado'])
+            ->count();
+
+        return $requisicoesAtivas < 3;
+    }
+
+    // Contar requisições ativas
+    public function getRequisicoesAtivasCount()
+    {
+        return $this->requisicoes()
+            ->whereIn('status', ['pendente', 'aprovado'])
+            ->count();
+    }
 }
