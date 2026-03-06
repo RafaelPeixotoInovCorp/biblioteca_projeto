@@ -46,7 +46,16 @@ class LivrosIndex extends Component
         }
 
         // Buscar todos os livros com relacionamentos
-        $allLivros = Livro::with(['editora', 'autores'])->get();
+        $allLivros = Livro::with(['editora', 'autores'])
+            ->withCount(['requisicoes' => function($q) {
+                $q->whereIn('status', ['pendente', 'aprovado']);
+            }])
+            ->get();
+
+        // Marcar cada livro como disponível ou não
+        foreach ($allLivros as $livro) {
+            $livro->disponivel_para_requisicao = $livro->requisicoes_count == 0;
+        }
 
         // Filtrar por pesquisa (nome do livro, autor, editora)
         if ($this->search) {

@@ -57,6 +57,24 @@
                             <p class="mt-2 text-base-content/70">{{ $livro->bibliografia }}</p>
                         </div>
                     @endif
+
+                    <!-- Botão de requisição -->
+                    @if(auth()->user() && !auth()->user()->isAdmin())
+                        <div class="mt-8">
+                            @if($livro->isDisponivel())
+                                <a href="{{ route('livros.requisitar', $livro->id) }}" class="btn btn-primary btn-lg w-full">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    Requisitar este livro
+                                </a>
+                            @else
+                                <button class="btn btn-disabled btn-lg w-full" disabled>
+                                    Livro indisponível
+                                </button>
+                            @endif
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>

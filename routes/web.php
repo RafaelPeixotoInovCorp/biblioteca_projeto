@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\LivroController as PublicLivroController;
 use App\Http\Controllers\TwoFactorController;
+use App\Http\Controllers\RequisicaoController; // <-- ADICIONA ESTA LINHA
 
 // Página pública
 Route::get('/', function () {
@@ -48,18 +49,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/livro/{id}/{slug?}', [PublicLivroController::class, 'show'])->name('livros.show');
     });
 
-    // Rotas de Requisições
-    Route::middleware(['auth', 'verified'])->group(function () {
-        Route::resource('requisicoes', RequisicaoController::class)->except(['edit', 'update']);
-        Route::put('/requisicoes/{requisicao}/confirmar-entrega', [RequisicaoController::class, 'confirmarEntrega'])
-            ->name('requisicoes.confirmar-entrega');
-        Route::delete('/requisicoes/{requisicao}/cancelar', [RequisicaoController::class, 'cancelar'])
-            ->name('requisicoes.cancelar');
+    // Rotas de Requisições (sem o resource, com rotas manuais)
+    Route::get('/requisicoes', [RequisicaoController::class, 'index'])->name('requisicoes.index');
+    Route::get('/requisicoes/create/{livro}', [RequisicaoController::class, 'create'])->name('requisicoes.create');
+    Route::post('/requisicoes', [RequisicaoController::class, 'store'])->name('requisicoes.store');
+    Route::get('/requisicoes/{requisicao}', [RequisicaoController::class, 'show'])->name('requisicoes.show');
+    Route::delete('/requisicoes/{requisicao}', [RequisicaoController::class, 'destroy'])->name('requisicoes.destroy');
 
-        // Rota para criar requisição a partir de um livro
-        Route::get('/livros/{livro}/requisitar', [RequisicaoController::class, 'create'])
-            ->name('livros.requisitar');
-    });
+// Rotas adicionais
+    Route::put('/requisicoes/{requisicao}/confirmar-entrega', [RequisicaoController::class, 'confirmarEntrega'])
+        ->name('requisicoes.confirmar-entrega');
+    Route::delete('/requisicoes/{requisicao}/cancelar', [RequisicaoController::class, 'cancelar'])
+        ->name('requisicoes.cancelar');
+
+// Rota para criar requisição a partir de um livro (mantém esta)
+    Route::get('/livros/{livro}/requisitar', [RequisicaoController::class, 'create'])
+        ->name('livros.requisitar');
 
     // PAINEL DE ADMINISTRAÇÃO
     Route::prefix('admin')->name('admin.')->group(function () {

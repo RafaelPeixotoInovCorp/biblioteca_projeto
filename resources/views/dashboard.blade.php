@@ -148,7 +148,7 @@
             @if(auth()->user()->isAdmin())
                 <div class="mt-12">
                     <h2 class="text-2xl font-bold text-base-content mb-6">Painel de Administração</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                         <!-- Card Gestão de Utilizadores -->
                         <div class="card bg-base-100 shadow-xl hover:scale-105 transition-transform duration-300">
                             <figure class="px-10 pt-10">
@@ -162,7 +162,7 @@
                                 <h3 class="card-title text-2xl text-base-content">Gestão de Utilizadores</h3>
                                 <p class="text-base-content/70">Gerir utilizadores, criar contas e atribuir permissões.</p>
                                 <div class="badge badge-primary mt-2">
-                                    {{ \App\Models\User::count() }} utilizadores
+                                    {{ App\Models\User::count() }} utilizadores
                                 </div>
                                 <div class="card-actions mt-4">
                                     <a href="{{ route('admin.users') }}" class="btn btn-primary">Gerir Utilizadores</a>
@@ -184,10 +184,35 @@
                                 <h3 class="card-title text-2xl text-base-content">Gestão de Roles</h3>
                                 <p class="text-base-content/70">Gerir roles e permissões do sistema.</p>
                                 <div class="badge badge-primary mt-2">
-                                    {{ \App\Models\Role::count() }} roles
+                                    {{ App\Models\Role::count() }} roles
                                 </div>
                                 <div class="card-actions mt-4">
                                     <a href="{{ route('admin.roles') }}" class="btn btn-primary">Gerir Roles</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- NOVO CARD: Gestão de Requisições -->
+                        <div class="card bg-base-100 shadow-xl hover:scale-105 transition-transform duration-300">
+                            <figure class="px-10 pt-10">
+                                <div class="w-24 h-24 rounded-full bg-primary/20 flex items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+                            </figure>
+                            <div class="card-body items-center text-center">
+                                <h3 class="card-title text-2xl text-base-content">Gestão de Requisições</h3>
+                                <p class="text-base-content/70">Gerir todas as requisições de livros dos cidadãos.</p>
+                                <div class="badge badge-primary mt-2">
+                                    @php
+                                        $ativas = App\Models\Requisicao::whereIn('status', ['pendente', 'aprovado'])->count();
+                                        $total = App\Models\Requisicao::count();
+                                    @endphp
+                                    {{ $ativas }} ativas · {{ $total }} total
+                                </div>
+                                <div class="card-actions mt-4">
+                                    <a href="{{ route('requisicoes.index') }}" class="btn btn-primary">Gerir Requisições</a>
                                 </div>
                             </div>
                         </div>

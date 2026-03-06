@@ -193,10 +193,10 @@ class User extends Authenticatable
     }
 
     // Verificar se pode requisitar mais livros
-    public function podeRequisitar()
+    public function podeRequisitar(): bool
     {
         if ($this->isAdmin()) {
-            return true; // Admin não tem limite
+            return true;
         }
 
         $requisicoesAtivas = $this->requisicoes()
@@ -207,7 +207,7 @@ class User extends Authenticatable
     }
 
     // Contar requisições ativas
-    public function getRequisicoesAtivasCount()
+    public function getRequisicoesAtivasCount(): int
     {
         return $this->requisicoes()
             ->whereIn('status', ['pendente', 'aprovado'])

@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('requisicoes', function (Blueprint $table) {
             $table->id();
-            $table->string('numero_requisicao')->unique(); // Numeração sequencial
+            $table->string('numero_requisicao')->unique();
             $table->foreignId('livro_id')->constrained()->onDelete('cascade');
             $table->foreignId('cidadao_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('admin_id')->nullable()->constrained('users')->nullOnDelete();

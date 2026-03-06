@@ -9,26 +9,32 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- Indicadores -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="stat bg-primary text-primary-content rounded-box shadow-lg">
-                    <div class="stat-title text-primary-content/80">Requisições Ativas</div>
-                    <div class="stat-value">{{ $indicadores['ativas'] }}</div>
+                <div class="card bg-primary text-primary-content shadow-xl">
+                    <div class="card-body">
+                        <h3 class="card-title text-lg">Requisições Ativas</h3>
+                        <p class="text-4xl font-bold">{{ $indicadores['ativas'] }}</p>
+                    </div>
                 </div>
 
-                <div class="stat bg-secondary text-secondary-content rounded-box shadow-lg">
-                    <div class="stat-title text-secondary-content/80">Últimos 30 dias</div>
-                    <div class="stat-value">{{ $indicadores['ultimos_30_dias'] }}</div>
+                <div class="card bg-secondary text-secondary-content shadow-xl">
+                    <div class="card-body">
+                        <h3 class="card-title text-lg">Últimos 30 dias</h3>
+                        <p class="text-4xl font-bold">{{ $indicadores['ultimos_30_dias'] }}</p>
+                    </div>
                 </div>
 
-                <div class="stat bg-accent text-accent-content rounded-box shadow-lg">
-                    <div class="stat-title text-accent-content/80">Entregues Hoje</div>
-                    <div class="stat-value">{{ $indicadores['entregues_hoje'] }}</div>
+                <div class="card bg-accent text-accent-content shadow-xl">
+                    <div class="card-body">
+                        <h3 class="card-title text-lg">Entregues Hoje</h3>
+                        <p class="text-4xl font-bold">{{ $indicadores['entregues_hoje'] }}</p>
+                    </div>
                 </div>
             </div>
 
             <!-- Tabela de Requisições -->
             <div class="bg-base-100 shadow-xl rounded-3xl overflow-hidden">
                 <div class="overflow-x-auto">
-                    <table class="table">
+                    <table class="table table-zebra">
                         <thead>
                         <tr>
                             <th>Nº Requisição</th>
@@ -61,17 +67,33 @@
                                         </div>
                                         <div>
                                             <div class="font-bold">{{ $req->livro->nome }}</div>
+                                            <div class="text-sm opacity-50">{{ $req->livro->isbn }}</div>
                                         </div>
                                     </div>
                                 </td>
                                 @if(auth()->user()->isAdmin())
-                                    <td>{{ $req->cidadao->name }}</td>
+                                    <td>
+                                        <div class="flex items-center gap-2">
+                                            @if($req->cidadao->profile_photo_url)
+                                                <div class="avatar">
+                                                    <div class="w-8 h-8 rounded-full">
+                                                        <img src="{{ $req->cidadao->profile_photo_url }}" alt="{{ $req->cidadao->name }}">
+                                                    </div>
+                                                </div>
+                                            @else
+                                                <div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                                                    <span class="text-sm text-primary">{{ substr($req->cidadao->name, 0, 1) }}</span>
+                                                </div>
+                                            @endif
+                                            <span>{{ $req->cidadao->name }}</span>
+                                        </div>
+                                    </td>
                                 @endif
                                 <td>{{ $req->data_requisicao->format('d/m/Y') }}</td>
                                 <td>
                                     {{ $req->data_prevista_entrega->format('d/m/Y') }}
                                     @if($req->isAtrasado())
-                                        <span class="badge badge-error ml-1">Atrasado</span>
+                                        <span class="badge badge-error badge-sm ml-1">Atrasado</span>
                                     @endif
                                 </td>
                                 <td>
@@ -81,8 +103,8 @@
                                         <span class="badge badge-success">Aprovado</span>
                                     @elseif($req->status == 'entregue')
                                         <span class="badge badge-info">Entregue</span>
-                                    @else
-                                        <span class="badge badge-ghost">{{ $req->status }}</span>
+                                    @elseif($req->status == 'cancelado')
+                                        <span class="badge badge-ghost">Cancelado</span>
                                     @endif
                                 </td>
                                 <td>
@@ -94,7 +116,14 @@
                         @empty
                             <tr>
                                 <td colspan="{{ auth()->user()->isAdmin() ? 7 : 6 }}" class="text-center py-8">
-                                    Nenhuma requisição encontrada.
+                                    <div class="alert alert-info shadow-lg">
+                                        <div>
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current flex-shrink-0 w-6 h-6">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            <span>Nenhuma requisição encontrada.</span>
+                                        </div>
+                                    </div>
                                 </td>
                             </tr>
                         @endforelse
@@ -102,7 +131,7 @@
                     </table>
                 </div>
 
-                <div class="p-4">
+                <div class="p-4 border-t border-base-200">
                     {{ $requisicoes->links() }}
                 </div>
             </div>

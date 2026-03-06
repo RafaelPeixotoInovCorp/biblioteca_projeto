@@ -128,6 +128,23 @@
                         </div>
                     @endif
 
+                    <!-- Badge de disponibilidade -->
+                    @if($livro->disponivel_para_requisicao ?? true)
+                        <div class="badge badge-success gap-2 mt-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Disponível
+                        </div>
+                    @else
+                        <div class="badge badge-error gap-2 mt-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            Indisponível
+                        </div>
+                    @endif
+
                     <!-- Ações -->
                     <div class="card-actions justify-end mt-4 pt-4 border-t border-base-200">
                         @if($canManage)

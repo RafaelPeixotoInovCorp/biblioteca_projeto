@@ -6,19 +6,16 @@ use App\Models\Livro;
 use App\Models\Requisicao;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\RequisicaoConfirmada;
-use App\Mail\RequisicaoAdminAlerta;
-use App\Mail\RequisicaoReminder;
+use Illuminate\Support\Facades\Log;
 
 class RequisicaoController extends Controller
 {
     public function index()
     {
         $user = Auth::user();
+        Log::info('RequisicaoController@index', ['user_id' => $user->id]);
 
         if ($user->isAdmin()) {
-            // Admin vê todas as requisições
             $requisicoes = Requisicao::with(['livro', 'cidadao'])
                 ->orderBy('created_at', 'desc')
                 ->paginate(15);
@@ -29,7 +26,6 @@ class RequisicaoController extends Controller
                 'entregues_hoje' => Requisicao::whereDate('data_efetiva_entrega', now())->count(),
             ];
         } else {
-            // Cidadão vê apenas as suas requisições
             $requisicoes = Requisicao::with('livro')
                 ->where('cidadao_id', $user->id)
                 ->orderBy('created_at', 'desc')
@@ -48,8 +44,17 @@ class RequisicaoController extends Controller
         return view('requisicoes.index', compact('requisicoes', 'indicadores'));
     }
 
-    public function create(Livro $livro)
+    public function create($livroId)
     {
+        Log::info('RequisicaoController@create', ['livro_id' => $livroId]);
+
+        try {
+            $livro = Livro::findOrFail($livroId);
+        } catch (\Exception $e) {
+            Log::error('Livro não encontrado', ['livro_id' => $livroId]);
+            return redirect()->route('livros.index')->with('error', 'Livro não encontrado.');
+        }
+
         $user = Auth::user();
 
         // Verificar se livro está disponível
@@ -65,15 +70,33 @@ class RequisicaoController extends Controller
         return view('requisicoes.create', compact('livro'));
     }
 
-    public function store(Request $request, Livro $livro)
+    public function store(Request $request)
     {
+        Log::info('RequisicaoController@store INÍCIO', [
+            'request_data' => $request->all()
+        ]);
+
         $user = Auth::user();
 
-        // Validações
-        if (!$livro->isDisponivel()) {
-            return redirect()->back()->with('error', 'Este livro já não está disponível.');
+        // Validar o request
+        $request->validate([
+            'livro_id' => 'required|exists:livros,id',
+            'observacoes' => 'nullable|string',
+        ]);
+
+        try {
+            $livro = Livro::findOrFail($request->livro_id);
+        } catch (\Exception $e) {
+            Log::error('Livro não encontrado', ['livro_id' => $request->livro_id]);
+            return redirect()->back()->with('error', 'Livro não encontrado.');
         }
 
+        // Verificar se livro está disponível
+        if (!$livro->isDisponivel()) {
+            return redirect()->back()->with('error', 'Este livro não está disponível para requisição.');
+        }
+
+        // Verificar se cidadão pode requisitar
         if (!$user->isAdmin() && !$user->podeRequisitar()) {
             return redirect()->back()->with('error', 'Limite de 3 requisições atingido.');
         }
@@ -82,43 +105,44 @@ class RequisicaoController extends Controller
         $ultimoNumero = Requisicao::max('id') ?? 0;
         $numeroRequisicao = 'REQ-' . str_pad($ultimoNumero + 1, 6, '0', STR_PAD_LEFT);
 
-        // Criar requisição
-        $requisicao = Requisicao::create([
-            'numero_requisicao' => $numeroRequisicao,
+        Log::info('A criar requisição', [
+            'numero' => $numeroRequisicao,
             'livro_id' => $livro->id,
-            'cidadao_id' => $user->id,
-            'data_requisicao' => now(),
-            'data_prevista_entrega' => now()->addDays(5),
-            'status' => $user->isAdmin() ? 'aprovado' : 'pendente',
-            'observacoes' => $request->observacoes,
+            'user_id' => $user->id
         ]);
 
-        // Atualizar disponibilidade do livro
-        $livro->disponivel = false;
-        $livro->requisicoes_count++;
-        $livro->save();
+        try {
+            $requisicao = Requisicao::create([
+                'numero_requisicao' => $numeroRequisicao,
+                'livro_id' => $livro->id,
+                'cidadao_id' => $user->id,
+                'data_requisicao' => now(),
+                'data_prevista_entrega' => now()->addDays(5),
+                'status' => 'pendente',
+                'observacoes' => $request->observacoes,
+            ]);
 
-        // Enviar emails
-        Mail::to($user->email)->send(new RequisicaoConfirmada($requisicao));
+            Log::info('Requisição criada', ['requisicao_id' => $requisicao->id]);
 
-        // Enviar email para todos os admins
-        $admins = User::whereHas('roles', function($q) {
-            $q->where('name', 'admin');
-        })->get();
+            return redirect()->route('requisicoes.index')
+                ->with('success', 'Requisição criada com sucesso!');
 
-        foreach ($admins as $admin) {
-            Mail::to($admin->email)->send(new RequisicaoAdminAlerta($requisicao));
+        } catch (\Exception $e) {
+            Log::error('Erro ao criar requisição', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return redirect()->back()
+                ->with('error', 'Erro ao criar requisição: ' . $e->getMessage());
         }
-
-        return redirect()->route('requisicoes.show', $requisicao)
-            ->with('success', 'Requisição criada com sucesso!');
     }
 
     public function show(Requisicao $requisicao)
     {
         $user = Auth::user();
+        Log::info('RequisicaoController@show', ['requisicao_id' => $requisicao->id, 'user_id' => $user->id]);
 
-        // Verificar permissão
         if (!$user->isAdmin() && $requisicao->cidadao_id !== $user->id) {
             abort(403);
         }
@@ -129,6 +153,7 @@ class RequisicaoController extends Controller
     public function confirmarEntrega(Request $request, Requisicao $requisicao)
     {
         $user = Auth::user();
+        Log::info('RequisicaoController@confirmarEntrega', ['requisicao_id' => $requisicao->id, 'user_id' => $user->id]);
 
         if (!$user->isAdmin()) {
             abort(403);
@@ -148,7 +173,6 @@ class RequisicaoController extends Controller
             'admin_id' => $user->id,
         ]);
 
-        // Reativar livro
         $requisicao->livro->update(['disponivel' => true]);
 
         return redirect()->route('requisicoes.show', $requisicao)
@@ -158,6 +182,7 @@ class RequisicaoController extends Controller
     public function cancelar(Requisicao $requisicao)
     {
         $user = Auth::user();
+        Log::info('RequisicaoController@cancelar', ['requisicao_id' => $requisicao->id, 'user_id' => $user->id]);
 
         if (!$user->isAdmin() && $requisicao->cidadao_id !== $user->id) {
             abort(403);
@@ -174,19 +199,9 @@ class RequisicaoController extends Controller
             ->with('success', 'Requisição cancelada.');
     }
 
-    // Comando para enviar reminders (para ser executado diariamente via cron)
-    public function enviarReminders()
+    public function destroy(Requisicao $requisicao)
     {
-        $requisicoes = Requisicao::with(['cidadao', 'livro'])
-            ->where('status', 'aprovado')
-            ->whereDate('data_prevista_entrega', now()->addDay())
-            ->get();
-
-        foreach ($requisicoes as $requisicao) {
-            Mail::to($requisicao->cidadao->email)
-                ->send(new RequisicaoReminder($requisicao));
-        }
-
-        return response()->json(['message' => 'Reminders enviados com sucesso']);
+        // Método destroy para o resource (pode apagar se não for usado)
+        abort(404);
     }
 }

@@ -9,8 +9,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('livros', function (Blueprint $table) {
-            $table->boolean('disponivel')->default(true);
-            $table->integer('requisicoes_count')->default(0);
+            if (!Schema::hasColumn('livros', 'disponivel')) {
+                $table->boolean('disponivel')->default(true);
+            }
+            if (!Schema::hasColumn('livros', 'requisicoes_count')) {
+                $table->integer('requisicoes_count')->default(0);
+            }
         });
     }
 

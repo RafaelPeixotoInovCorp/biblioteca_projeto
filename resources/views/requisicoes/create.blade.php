@@ -7,6 +7,28 @@
 
     <div class="py-12">
         <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
+
+            @if($errors->any())
+                <div class="alert alert-error shadow-lg mb-4">
+                    <div>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <ul>
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+            @endif
+
+            @if(session('error'))
+                <div class="alert alert-error shadow-lg mb-4">
+                    <span>{{ session('error') }}</span>
+                </div>
+            @endif
+
             <div class="bg-base-100 overflow-hidden shadow-xl sm:rounded-lg p-8">
                 <div class="flex gap-6 mb-8">
                     <!-- Imagem do livro -->
@@ -33,8 +55,9 @@
                     </div>
                 </div>
 
-                <form action="{{ route('requisicoes.store', $livro) }}" method="POST">
+                <form action="{{ route('requisicoes.store', $livro->id) }}" method="POST">
                     @csrf
+                    <input type="hidden" name="livro_id" value="{{ $livro->id }}">
 
                     <div class="form-control mb-6">
                         <label class="label">
@@ -53,8 +76,6 @@
                             <p class="font-bold">Informações importantes:</p>
                             <ul class="list-disc list-inside text-sm mt-2">
                                 <li>A data prevista de entrega é 5 dias após a requisição</li>
-                                <li>Receberá um email de confirmação com os detalhes</li>
-                                <li>Receberá um lembrete no dia anterior à entrega</li>
                                 <li>Pode cancelar a requisição enquanto estiver pendente</li>
                             </ul>
                         </div>

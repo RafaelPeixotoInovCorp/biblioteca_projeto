@@ -7,7 +7,6 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <!-- Botão voltar -->
             <div class="mb-6">
                 <a href="{{ route('requisicoes.index') }}" class="btn btn-ghost gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -16,6 +15,12 @@
                     Voltar
                 </a>
             </div>
+
+            @if(session('success'))
+                <div class="alert alert-success shadow-lg mb-4">
+                    <span>{{ session('success') }}</span>
+                </div>
+            @endif
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <!-- Informações da Requisição -->
@@ -30,8 +35,8 @@
                                     <span class="badge badge-success badge-lg">Aprovado</span>
                                 @elseif($requisicao->status == 'entregue')
                                     <span class="badge badge-info badge-lg">Entregue</span>
-                                @else
-                                    <span class="badge badge-ghost badge-lg">{{ $requisicao->status }}</span>
+                                @elseif($requisicao->status == 'cancelado')
+                                    <span class="badge badge-ghost badge-lg">Cancelado</span>
                                 @endif
                             </div>
                         </div>
@@ -64,7 +69,6 @@
                             </div>
                         @endif
 
-                        <!-- Ações -->
                         @if(auth()->user()->isAdmin())
                             @if(in_array($requisicao->status, ['pendente', 'aprovado']))
                                 <div class="mt-8 flex gap-4">
@@ -103,7 +107,7 @@
                     </div>
                 </div>
 
-                <!-- Informações do Livro e Cidadão -->
+                <!-- Cards laterais -->
                 <div class="space-y-6">
                     <!-- Card do Livro -->
                     <div class="bg-base-100 shadow-xl rounded-3xl p-6">
@@ -128,8 +132,8 @@
                         </div>
                     </div>
 
-                    <!-- Card do Cidadão -->
                     @if(auth()->user()->isAdmin())
+                        <!-- Card do Cidadão -->
                         <div class="bg-base-100 shadow-xl rounded-3xl p-6">
                             <h4 class="font-bold text-lg mb-4">Cidadão</h4>
                             <div class="flex gap-4">
@@ -147,52 +151,7 @@
                                 <div>
                                     <p class="font-bold">{{ $requisicao->cidadao->name }}</p>
                                     <p class="text-sm text-base-content/70">{{ $requisicao->cidadao->email }}</p>
-                                    <a href="{{ route('admin.users.editar', $requisicao->cidadao->id) }}" class="btn btn-xs btn-primary mt-2">
-                                        Ver Perfil
-                                    </a>
                                 </div>
-                            </div>
-                        </div>
-                    @endif
-
-                    <!-- Histórico de Requisições do Livro -->
-                    <div class="bg-base-100 shadow-xl rounded-3xl p-6">
-                        <h4 class="font-bold text-lg mb-4">Histórico do Livro</h4>
-                        <div class="space-y-3 max-h-60 overflow-y-auto">
-                            @forelse($requisicao->livro->requisicoes()->with('cidadao')->latest()->limit(5)->get() as $hist)
-                                <div class="border-b border-base-200 pb-2 last:border-0">
-                                    <p class="font-medium">{{ $hist->numero_requisicao }}</p>
-                                    <p class="text-xs text-base-content/70">
-                                        {{ $hist->data_requisicao->format('d/m/Y') }} -
-                                        {{ $hist->status }}
-                                        @if($hist->cidadao)
-                                            | {{ $hist->cidadao->name }}
-                                        @endif
-                                    </p>
-                                </div>
-                            @empty
-                                <p class="text-sm text-base-content/50">Sem histórico</p>
-                            @endforelse
-                        </div>
-                    </div>
-
-                    <!-- Histórico do Cidadão (apenas admin) -->
-                    @if(auth()->user()->isAdmin())
-                        <div class="bg-base-100 shadow-xl rounded-3xl p-6">
-                            <h4 class="font-bold text-lg mb-4">Histórico do Cidadão</h4>
-                            <div class="space-y-3 max-h-60 overflow-y-auto">
-                                @forelse($requisicao->cidadao->requisicoes()->with('livro')->latest()->limit(5)->get() as $hist)
-                                    <div class="border-b border-base-200 pb-2 last:border-0">
-                                        <p class="font-medium">{{ $hist->numero_requisicao }}</p>
-                                        <p class="text-xs text-base-content/70">
-                                            {{ $hist->livro->nome }} -
-                                            {{ $hist->data_requisicao->format('d/m/Y') }} -
-                                            {{ $hist->status }}
-                                        </p>
-                                    </div>
-                                @empty
-                                    <p class="text-sm text-base-content/50">Sem histórico</p>
-                                @endforelse
                             </div>
                         </div>
                     @endif
