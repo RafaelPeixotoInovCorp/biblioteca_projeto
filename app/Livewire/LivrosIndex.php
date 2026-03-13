@@ -7,6 +7,7 @@ use App\Models\Autor;
 use App\Models\Editora;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class LivrosIndex extends Component
 {
@@ -39,50 +40,45 @@ class LivrosIndex extends Component
         }
     }
 
+    /**
+     * Método para eliminar livros (apenas para admin)
+     */
+    public function delete($id)
+    {
+        // Verificar se o utilizador é admin
+        if (!auth()->user()->isAdmin()) {
+            abort(403);
+        }
+
+        $livro = Livro::find($id);
+        if ($livro) {
+            // Apagar imagem se existir
+            if ($livro->imagem_capa) {
+                Storage::disk('public')->delete($livro->imagem_capa);
+            }
+            $livro->delete();
+            session()->flash('message', 'Livro eliminado com sucesso!');
+        }
+    }
+
     public function render()
     {
         if (!auth()->user()->canViewBooks()) {
             abort(403);
         }
 
-        // Buscar todos os livros com relacionamentos
-        $allLivros = Livro::with(['editora', 'autores'])
-            ->withCount(['requisicoes' => function($q) {
-                $q->whereIn('status', ['pendente', 'aprovado']);
-            }])
-            ->get();
+        $allLivros = Livro::with(['editora', 'autores'])->get();
 
-        // Marcar cada livro como disponível ou não
-        foreach ($allLivros as $livro) {
-            $livro->disponivel_para_requisicao = $livro->requisicoes_count == 0;
-        }
-
-        // Filtrar por pesquisa (nome do livro, autor, editora)
+        // Filtrar por pesquisa
         if ($this->search) {
             $searchLower = strtolower($this->search);
             $allLivros = $allLivros->filter(function($livro) use ($searchLower) {
-                // Pesquisar no nome do livro
-                if (str_contains(strtolower($livro->nome), $searchLower)) {
-                    return true;
-                }
-
-                // Pesquisar no ISBN
-                if (str_contains(strtolower($livro->isbn), $searchLower)) {
-                    return true;
-                }
-
-                // Pesquisar nos autores
+                if (str_contains(strtolower($livro->nome), $searchLower)) return true;
+                if (str_contains(strtolower($livro->isbn), $searchLower)) return true;
                 foreach ($livro->autores as $autor) {
-                    if (str_contains(strtolower($autor->nome), $searchLower)) {
-                        return true;
-                    }
+                    if (str_contains(strtolower($autor->nome), $searchLower)) return true;
                 }
-
-                // Pesquisar na editora
-                if ($livro->editora && str_contains(strtolower($livro->editora->nome), $searchLower)) {
-                    return true;
-                }
-
+                if ($livro->editora && str_contains(strtolower($livro->editora->nome), $searchLower)) return true;
                 return false;
             });
         }
@@ -118,15 +114,14 @@ class LivrosIndex extends Component
 
         $allLivros = $allLivros->values();
 
-        // Paginar
         $page = $this->getPage();
         $perPage = 12;
-        $livros = new \Illuminate\Pagination\LengthAwarePaginator(
+        $livros = new LengthAwarePaginator(
             $allLivros->forPage($page, $perPage),
             $allLivros->count(),
             $perPage,
             $page,
-            ['path' => \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPath()]
+            ['path' => LengthAwarePaginator::resolveCurrentPath()]
         );
 
         $autores = Autor::all()->sortBy('nome')->values();

@@ -27,16 +27,33 @@ class AutoresIndex extends Component
         }
     }
 
+    /**
+     * Método para eliminar autores (apenas para admin)
+     */
+    public function delete($id)
+    {
+        if (!auth()->user()->isAdmin()) {
+            abort(403);
+        }
+
+        $autor = Autor::find($id);
+        if ($autor) {
+            if ($autor->foto) {
+                Storage::disk('public')->delete($autor->foto);
+            }
+            $autor->delete();
+            session()->flash('message', 'Autor eliminado com sucesso!');
+        }
+    }
+
     public function render()
     {
         if (!auth()->user()->canViewAuthors()) {
             abort(403);
         }
 
-        // Buscar todos os autores
         $allAutores = Autor::with('livros')->get();
 
-        // Filtrar por pesquisa
         if ($this->search) {
             $searchLower = strtolower($this->search);
             $allAutores = $allAutores->filter(function($autor) use ($searchLower) {
@@ -44,7 +61,6 @@ class AutoresIndex extends Component
             });
         }
 
-        // Ordenar
         if ($this->sortField === 'nome') {
             $allAutores = $allAutores->sortBy('nome', SORT_NATURAL|SORT_FLAG_CASE);
         } elseif ($this->sortField === 'livros') {
@@ -59,7 +75,6 @@ class AutoresIndex extends Component
 
         $allAutores = $allAutores->values();
 
-        // Paginar
         $page = $this->getPage();
         $perPage = 12;
         $autores = new LengthAwarePaginator(

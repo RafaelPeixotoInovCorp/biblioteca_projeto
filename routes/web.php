@@ -116,5 +116,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::put('/roles/{id}', [RoleController::class, 'update'])->name('roles.update');
             Route::delete('/roles/{id}', [RoleController::class, 'destroy'])->name('roles.destroy');
         });
+
+        // Rotas para importação de livros
+        Route::middleware(['permission:manage_books'])->prefix('importar')->name('importar.')->group(function () {
+            Route::get('/livros', [App\Http\Controllers\Admin\ImportacaoController::class, 'index'])->name('index');
+            Route::post('/livros/pesquisar', [App\Http\Controllers\Admin\ImportacaoController::class, 'pesquisar'])->name('pesquisar');
+            Route::post('/livros/importar', [App\Http\Controllers\Admin\ImportacaoController::class, 'importar'])->name('importar');
+            Route::post('/livros/importar-multiplos', [App\Http\Controllers\Admin\ImportacaoController::class, 'importarMultiplos'])->name('importar-multiplos');
+        });
     });
 });

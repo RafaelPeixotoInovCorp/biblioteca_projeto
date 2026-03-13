@@ -61,77 +61,103 @@
                     @endif
 
                     @if(auth()->user()->isAdmin())
+                        <!-- Link para Admin em vez de título -->
                         <a href="{{ route('admin.users') }}"
                            class="px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150 ease-in-out
-                                  {{ request()->routeIs('admin.*')
+                                  {{ request()->routeIs('admin.users') || request()->routeIs('admin.roles')
                                       ? 'bg-primary/10 text-primary'
                                       : 'text-base-content/70 hover:text-base-content hover:bg-base-200' }}">
                             Admin
+                        </a>
+
+                        <!-- Link para Importar Livros (separado) -->
+                        <a href="{{ route('admin.importar.index') }}"
+                           class="px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150 ease-in-out
+                                  {{ request()->routeIs('admin.importar.*')
+                                      ? 'bg-primary/10 text-primary'
+                                      : 'text-base-content/70 hover:text-base-content hover:bg-base-200' }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            Importar
                         </a>
                     @endif
                 </div>
             </div>
 
             <!-- Dropdown do Utilizador -->
-            <div class="flex items-center">
-                <x-dropdown align="right" width="48">
-                    <x-slot name="trigger">
-                        <button class="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-base-content hover:bg-base-200 transition-colors duration-150 ease-in-out focus:outline-none">
-                            <div class="flex items-center gap-2">
-                                @if(Auth::user()->profile_photo_url)
-                                    <div class="avatar">
-                                        <div class="w-8 h-8 rounded-full">
-                                            <img src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}">
-                                        </div>
-                                    </div>
-                                @else
-                                    <div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                                        <span class="text-sm font-bold text-primary">{{ substr(Auth::user()->name, 0, 1) }}</span>
-                                    </div>
-                                @endif
-                                <span class="hidden sm:inline">{{ Auth::user()->name }}</span>
+            <div class="flex items-center relative" style="z-index: 9999;">
+                <div class="dropdown dropdown-end">
+                    <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar placeholder">
+                        @if(Auth::user()->profile_photo_url)
+                            <div class="w-10 rounded-full">
+                                <img src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" />
                             </div>
-                            <svg class="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                            </svg>
-                        </button>
-                    </x-slot>
-
-                    <x-slot name="content">
-                        <div class="px-4 py-2 text-xs font-medium text-base-content/50 uppercase tracking-wider">
-                            {{ __('Minha Conta') }}
-                        </div>
-
-                        <x-dropdown-link href="{{ route('profile.show') }}" class="flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
-                            {{ __('Perfil') }}
-                        </x-dropdown-link>
-
-                        @if (Laravel\Jetstream\Jetstream::hasApiFeatures())
-                            <x-dropdown-link href="{{ route('api-tokens.index') }}" class="flex items-center gap-2">
+                        @else
+                            <div class="bg-neutral text-neutral-content rounded-full w-10">
+                                <span class="text-xl">{{ substr(Auth::user()->name, 0, 1) }}</span>
+                            </div>
+                        @endif
+                    </div>
+                    <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[9999] w-52 p-2 shadow-lg">
+                        <li class="menu-title">
+                            <span>{{ Auth::user()->name }}</span>
+                        </li>
+                        <li>
+                            <a href="{{ route('profile.show') }}" class="flex items-center gap-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                 </svg>
-                                {{ __('API Tokens') }}
-                            </x-dropdown-link>
+                                Perfil
+                            </a>
+                        </li>
+
+                        @if(auth()->user()->isAdmin())
+                            <li>
+                                <a href="{{ route('admin.users') }}" class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                    </svg>
+                                    Gestão Admin
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('admin.importar.index') }}" class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                    </svg>
+                                    Importar Livros
+                                </a>
+                            </li>
                         @endif
 
-                        <div class="border-t border-base-200 my-1"></div>
+                        @if (Laravel\Jetstream\Jetstream::hasApiFeatures())
+                            <li>
+                                <a href="{{ route('api-tokens.index') }}" class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                                    </svg>
+                                    API Tokens
+                                </a>
+                            </li>
+                        @endif
 
-                        <form method="POST" action="{{ route('logout') }}" x-data>
-                            @csrf
-                            <x-dropdown-link href="{{ route('logout') }}" class="flex items-center gap-2 text-error hover:text-error"
-                                             @click.prevent="$root.submit();">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                                </svg>
-                                {{ __('Sair') }}
-                            </x-dropdown-link>
-                        </form>
-                    </x-slot>
-                </x-dropdown>
+                        <li class="menu-title mt-2">
+                            <span>Sessão</span>
+                        </li>
+                        <li>
+                            <form method="POST" action="{{ route('logout') }}" x-data>
+                                @csrf
+                                <button type="submit" class="w-full text-left flex items-center gap-2 text-error">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                    </svg>
+                                    Sair
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
             </div>
 
             <!-- Hamburger (mobile) -->
@@ -186,10 +212,22 @@
             @endif
 
             @if(auth()->user()->isAdmin())
+                <div class="border-t border-base-200 my-2"></div>
+                <div class="px-4 py-1 text-xs font-semibold text-base-content/50 uppercase tracking-wider">
+                    Administração
+                </div>
                 <a href="{{ route('admin.users') }}"
                    class="block px-4 py-2 text-base hover:bg-base-200 transition-colors duration-150 ease-in-out
-                          {{ request()->routeIs('admin.*') ? 'bg-primary/10 text-primary font-medium' : 'text-base-content/70' }}">
-                    Admin
+                          {{ request()->routeIs('admin.users') || request()->routeIs('admin.roles') ? 'bg-primary/10 text-primary font-medium' : 'text-base-content/70' }}">
+                    Gestão Admin
+                </a>
+                <a href="{{ route('admin.importar.index') }}"
+                   class="block px-4 py-2 text-base hover:bg-base-200 transition-colors duration-150 ease-in-out
+                          {{ request()->routeIs('admin.importar.*') ? 'bg-primary/10 text-primary font-medium' : 'text-base-content/70' }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Importar Livros
                 </a>
             @endif
         </div>

@@ -122,9 +122,13 @@
                     @endif
 
                     <!-- Preço -->
-                    @if($livro->preco)
+                    @if($livro->preco && $livro->preco > 0)
                         <div class="mt-2">
                             <span class="text-2xl font-bold text-primary">{{ number_format($livro->preco, 2, ',', '.') }}€</span>
+                        </div>
+                    @else
+                        <div class="mt-2">
+                            <span class="badge badge-info">Preço sob consulta</span>
                         </div>
                     @endif
 

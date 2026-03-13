@@ -79,4 +79,24 @@ class Livro extends Model
             ->whereIn('status', ['pendente', 'aprovado'])
             ->first();
     }
+
+    /**
+     * Accessor para formatar o preço
+     */
+    public function getPrecoFormatadoAttribute()
+    {
+        if ($this->preco === null || $this->preco == 0) {
+            return 'Preço sob consulta';
+        }
+
+        return number_format($this->preco, 2, ',', '.') . ' €';
+    }
+
+    /**
+     * Verifica se o preço é consulta
+     */
+    public function isPrecoConsulta()
+    {
+        return $this->preco === null || $this->preco == 0;
+    }
 }

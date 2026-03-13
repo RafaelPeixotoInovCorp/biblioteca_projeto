@@ -27,16 +27,33 @@ class EditorasIndex extends Component
         }
     }
 
+    /**
+     * Método para eliminar editoras (apenas para admin)
+     */
+    public function delete($id)
+    {
+        if (!auth()->user()->isAdmin()) {
+            abort(403);
+        }
+
+        $editora = Editora::find($id);
+        if ($editora) {
+            if ($editora->logotipo) {
+                Storage::disk('public')->delete($editora->logotipo);
+            }
+            $editora->delete();
+            session()->flash('message', 'Editora eliminada com sucesso!');
+        }
+    }
+
     public function render()
     {
         if (!auth()->user()->canViewPublishers()) {
             abort(403);
         }
 
-        // Buscar todas as editoras
         $allEditoras = Editora::withCount('livros')->get();
 
-        // Filtrar por pesquisa
         if ($this->search) {
             $searchLower = strtolower($this->search);
             $allEditoras = $allEditoras->filter(function($editora) use ($searchLower) {
@@ -44,7 +61,6 @@ class EditorasIndex extends Component
             });
         }
 
-        // Ordenar
         if ($this->sortField === 'nome') {
             $allEditoras = $allEditoras->sortBy('nome', SORT_NATURAL|SORT_FLAG_CASE);
         } elseif ($this->sortField === 'livros') {
@@ -57,7 +73,6 @@ class EditorasIndex extends Component
 
         $allEditoras = $allEditoras->values();
 
-        // Paginar
         $page = $this->getPage();
         $perPage = 12;
         $editoras = new LengthAwarePaginator(

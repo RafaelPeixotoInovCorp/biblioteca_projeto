@@ -44,11 +44,17 @@
                         </div>
                     </div>
 
-                    @if($livro->preco)
-                        <p class="mb-4">
-                            <span class="font-semibold">Preço:</span><br>
-                            <span class="text-2xl text-primary">{{ number_format($livro->preco, 2, ',', '.') }} €</span>
-                        </p>
+                    <!-- Preço -->
+                    @if($livro->preco && $livro->preco > 0)
+                        <div class="mb-8">
+                            <span class="text-sm text-base-content/50 uppercase tracking-wider block mb-2">Preço</span>
+                            <span class="text-5xl font-bold text-primary">{{ number_format($livro->preco, 2, ',', '.') }} €</span>
+                        </div>
+                    @else
+                        <div class="mb-8">
+                            <span class="text-sm text-base-content/50 uppercase tracking-wider block mb-2">Preço</span>
+                            <span class="badge badge-info badge-lg py-3 px-4 text-base">Preço sob consulta</span>
+                        </div>
                     @endif
 
                     @if($livro->bibliografia)

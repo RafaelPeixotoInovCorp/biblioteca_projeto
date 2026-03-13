@@ -19,6 +19,9 @@ class LivrosLista extends Component
     {
         $livro = Livro::find($id);
         if ($livro) {
+            if ($livro->imagem_capa) {
+                Storage::disk('public')->delete($livro->imagem_capa);
+            }
             $livro->delete();
             session()->flash('message', 'Livro eliminado com sucesso!');
         }
@@ -32,10 +35,8 @@ class LivrosLista extends Component
             $livrosQuery->where('nome', 'like', '%' . $this->search . '%');
         }
 
-        // Buscar todos e ordenar em memória
         $allLivros = $livrosQuery->get()->sortBy('nome', SORT_NATURAL|SORT_FLAG_CASE)->values();
 
-        // Paginar manualmente
         $page = $this->getPage();
         $perPage = 10;
         $livros = new LengthAwarePaginator(
