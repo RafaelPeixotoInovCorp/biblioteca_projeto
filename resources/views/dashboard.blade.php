@@ -20,7 +20,7 @@
             <!-- Cards de acesso (visíveis para todos que podem ver) -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
                 @if(auth()->user()->canViewBooks())
-                    <div class="card bg-base-100 shadow-xl hover:scale-105 transition-transform duration-300">
+                    <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 z-0">
                         <figure class="px-10 pt-10">
                             <div class="w-24 h-24 rounded-full bg-primary/20 flex items-center justify-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -58,7 +58,7 @@
                 @endif
 
                 @if(auth()->user()->canViewAuthors())
-                    <div class="card bg-base-100 shadow-xl hover:scale-105 transition-transform duration-300">
+                        <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 z-0">
                         <figure class="px-10 pt-10">
                             <div class="w-24 h-24 rounded-full bg-primary/20 flex items-center justify-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -95,7 +95,7 @@
                 @endif
 
                 @if(auth()->user()->canViewPublishers())
-                    <div class="card bg-base-100 shadow-xl hover:scale-105 transition-transform duration-300">
+                        <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 z-0">
                         <figure class="px-10 pt-10">
                             <div class="w-24 h-24 rounded-full bg-primary/20 flex items-center justify-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -148,9 +148,9 @@
             @if(auth()->user()->isAdmin())
                 <div class="mt-12">
                     <h2 class="text-2xl font-bold text-base-content mb-6">Painel de Administração</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                         <!-- Card Gestão de Utilizadores -->
-                        <div class="card bg-base-100 shadow-xl hover:scale-105 transition-transform duration-300">
+                        <div class="card bg-base-100 shadow-xl hover:scale-105 transition-transform duration-300 z-0">
                             <figure class="px-10 pt-10">
                                 <div class="w-24 h-24 rounded-full bg-primary/20 flex items-center justify-center">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -171,7 +171,7 @@
                         </div>
 
                         <!-- Card Gestão de Roles -->
-                        <div class="card bg-base-100 shadow-xl hover:scale-105 transition-transform duration-300">
+                        <div class="card bg-base-100 shadow-xl hover:scale-105 transition-transform duration-300 z-0">
                             <figure class="px-10 pt-10">
                                 <div class="w-24 h-24 rounded-full bg-primary/20 flex items-center justify-center">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -192,27 +192,54 @@
                             </div>
                         </div>
 
-                        <!-- NOVO CARD: Gestão de Requisições -->
-                        <div class="card bg-base-100 shadow-xl hover:scale-105 transition-transform duration-300">
+                        <!-- Card Importar Livros -->
+                        <div class="card bg-base-100 shadow-xl hover:scale-105 transition-transform duration-300 z-0">
                             <figure class="px-10 pt-10">
                                 <div class="w-24 h-24 rounded-full bg-primary/20 flex items-center justify-center">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                     </svg>
                                 </div>
                             </figure>
                             <div class="card-body items-center text-center">
-                                <h3 class="card-title text-2xl text-base-content">Gestão de Requisições</h3>
-                                <p class="text-base-content/70">Gerir todas as requisições de livros dos cidadãos.</p>
+                                <h3 class="card-title text-2xl text-base-content">Importar Livros</h3>
+                                <p class="text-base-content/70">Pesquisar e importar livros da Google Books API.</p>
                                 <div class="badge badge-primary mt-2">
-                                    @php
-                                        $ativas = App\Models\Requisicao::whereIn('status', ['pendente', 'aprovado'])->count();
-                                        $total = App\Models\Requisicao::count();
-                                    @endphp
-                                    {{ $ativas }} ativas · {{ $total }} total
+                                    {{ App\Models\Livro::count() }} livros
                                 </div>
                                 <div class="card-actions mt-4">
-                                    <a href="{{ route('requisicoes.index') }}" class="btn btn-primary">Gerir Requisições</a>
+                                    <a href="{{ route('admin.importar.index') }}" class="btn btn-primary">Importar Livros</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- NOVO CARD: Moderação de Reviews -->
+                        <div class="card bg-base-100 shadow-xl hover:scale-105 transition-transform duration-300 z-0">
+                            <figure class="px-10 pt-10">
+                                <div class="w-24 h-24 rounded-full bg-primary/20 flex items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                                    </svg>
+                                </div>
+                            </figure>
+                            <div class="card-body items-center text-center">
+                                <h3 class="card-title text-2xl text-base-content">Moderação de Reviews</h3>
+                                <p class="text-base-content/70">Aprovar ou recusar reviews de livros submetidas por cidadãos.</p>
+                                <div class="flex gap-2 mt-2">
+                                    <div class="badge badge-warning">
+                                        {{ App\Models\Review::where('estado', 'suspenso')->count() }} suspensas
+                                    </div>
+                                    <div class="badge badge-success">
+                                        {{ App\Models\Review::where('estado', 'ativo')->count() }} ativas
+                                    </div>
+                                </div>
+                                <div class="card-actions mt-4">
+                                    <a href="{{ route('admin.reviews.index') }}" class="btn btn-primary">
+                                        Moderar Reviews
+                                        @if(App\Models\Review::where('estado', 'suspenso')->count() > 0)
+                                            <span class="badge badge-error badge-sm ml-2">{{ App\Models\Review::where('estado', 'suspenso')->count() }}</span>
+                                        @endif
+                                    </a>
                                 </div>
                             </div>
                         </div>

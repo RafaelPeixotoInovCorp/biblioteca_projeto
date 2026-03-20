@@ -55,16 +55,41 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/requisicoes', [RequisicaoController::class, 'store'])->name('requisicoes.store');
     Route::get('/requisicoes/{requisicao}', [RequisicaoController::class, 'show'])->name('requisicoes.show');
     Route::delete('/requisicoes/{requisicao}', [RequisicaoController::class, 'destroy'])->name('requisicoes.destroy');
-
-// Rotas adicionais
+    // Rotas adicionais
     Route::put('/requisicoes/{requisicao}/confirmar-entrega', [RequisicaoController::class, 'confirmarEntrega'])
         ->name('requisicoes.confirmar-entrega');
     Route::delete('/requisicoes/{requisicao}/cancelar', [RequisicaoController::class, 'cancelar'])
         ->name('requisicoes.cancelar');
-
-// Rota para criar requisição a partir de um livro (mantém esta)
+    // Rota para criar requisição a partir de um livro (mantém esta)
     Route::get('/livros/{livro}/requisitar', [RequisicaoController::class, 'create'])
         ->name('livros.requisitar');
+
+    // Rotas de Reviews (cidadãos)
+    Route::middleware(['auth'])->group(function () {
+        Route::get('/requisicoes/{requisicao}/review', [App\Http\Controllers\ReviewController::class, 'create'])
+            ->name('reviews.create');
+        Route::post('/requisicoes/{requisicao}/review', [App\Http\Controllers\ReviewController::class, 'store'])
+            ->name('reviews.store');
+    });
+    // Rotas de moderação (admin)
+    Route::middleware(['auth', 'permission:manage_users'])->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/reviews', [App\Http\Controllers\ReviewController::class, 'moderarIndex'])
+            ->name('reviews.index');
+        Route::get('/reviews/{review}', [App\Http\Controllers\ReviewController::class, 'moderarShow'])
+            ->name('reviews.show');
+        Route::patch('/reviews/{review}/aprovar', [App\Http\Controllers\ReviewController::class, 'aprovar'])
+            ->name('reviews.aprovar');
+        Route::patch('/reviews/{review}/recusar', [App\Http\Controllers\ReviewController::class, 'recusar'])
+            ->name('reviews.recusar');
+    });
+
+    // Rotas para notificações de disponibilidade
+    Route::middleware(['auth'])->group(function () {
+        Route::post('/livros/{livro}/notificar-disponibilidade', [App\Http\Controllers\NotificacaoDisponibilidadeController::class, 'store'])
+            ->name('livros.notificar');
+        Route::delete('/livros/{livro}/cancelar-notificacao', [App\Http\Controllers\NotificacaoDisponibilidadeController::class, 'destroy'])
+            ->name('livros.cancelar-notificacao');
+    });
 
     // PAINEL DE ADMINISTRAÇÃO
     Route::prefix('admin')->name('admin.')->group(function () {

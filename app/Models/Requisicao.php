@@ -53,4 +53,16 @@ class Requisicao extends Model
         return $this->status === 'aprovado' &&
             $this->data_prevista_entrega < now()->format('Y-m-d');
     }
+
+    // Relacionamento com review
+    public function review()
+    {
+        return $this->hasOne(Review::class);
+    }
+
+    // Verificar se já tem review
+    public function hasReview(): bool
+    {
+        return $this->review()->exists();
+    }
 }

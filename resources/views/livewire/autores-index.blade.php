@@ -29,7 +29,7 @@
     <!-- Grid de Autores -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         @forelse($autores as $autor)
-            <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300">
+            <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 z-0">
                 <figure class="px-4 pt-4 flex justify-center">
                     <a href="{{ route('livros.index', ['filtro_autor' => $autor->id]) }}" class="block">
                         <div class="avatar">

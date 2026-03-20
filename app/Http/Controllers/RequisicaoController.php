@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Livro;
 use App\Models\Requisicao;
+use App\Models\NotificacaoDisponibilidade;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use App\Mail\LivroDisponivelNotificacao;
+use Illuminate\Support\Facades\Mail;
 
 class RequisicaoController extends Controller
 {
@@ -150,6 +153,8 @@ class RequisicaoController extends Controller
         return view('requisicoes.show', compact('requisicao'));
     }
 
+    // Confirma a entrega de um livro e processa notificações pendentes
+
     public function confirmarEntrega(Request $request, Requisicao $requisicao)
     {
         $user = Auth::user();
@@ -173,10 +178,59 @@ class RequisicaoController extends Controller
             'admin_id' => $user->id,
         ]);
 
-        $requisicao->livro->update(['disponivel' => true]);
+        // Reativar livro
+        $livro = $requisicao->livro;
+        $livro->update(['disponivel' => true]);
+
+        // Processar notificações para este livro
+        $notificacoesEnviadas = $this->processarNotificacoesDisponibilidade($livro);
+
+        if ($notificacoesEnviadas > 0) {
+            session()->flash('info', "📧 {$notificacoesEnviadas} cidadão(s) notificado(s) sobre a disponibilidade do livro.");
+        }
 
         return redirect()->route('requisicoes.show', $requisicao)
             ->with('success', 'Entrega confirmada!');
+    }
+
+    /**
+     * Processa as notificações de disponibilidade para um livro
+     */
+    private function processarNotificacoesDisponibilidade(Livro $livro): int
+    {
+        $notificacoes = NotificacaoDisponibilidade::where('livro_id', $livro->id)
+            ->where('notificado', false)
+            ->with('cidadao')
+            ->get();
+
+        $enviadas = 0;
+
+        foreach ($notificacoes as $notificacao) {
+            try {
+                Mail::to($notificacao->cidadao->email)
+                    ->send(new LivroDisponivelNotificacao($livro, $notificacao->cidadao));
+
+                $notificacao->update([
+                    'notificado' => true,
+                    'notificado_em' => now(),
+                ]);
+
+                $enviadas++;
+                Log::info('Notificação de disponibilidade enviada', [
+                    'livro_id' => $livro->id,
+                    'cidadao_id' => $notificacao->cidadao_id,
+                    'email' => $notificacao->cidadao->email
+                ]);
+
+            } catch (\Exception $e) {
+                Log::error('Erro ao enviar notificação de disponibilidade', [
+                    'notificacao_id' => $notificacao->id,
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
+
+        return $enviadas;
     }
 
     public function cancelar(Requisicao $requisicao)

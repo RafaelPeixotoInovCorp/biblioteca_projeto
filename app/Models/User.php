@@ -213,4 +213,12 @@ class User extends Authenticatable
             ->whereIn('status', ['pendente', 'aprovado'])
             ->count();
     }
+
+    /**
+     * Relacionamento com notificações de disponibilidade
+     */
+    public function notificacoesDisponibilidade()
+    {
+        return $this->hasMany(NotificacaoDisponibilidade::class, 'cidadao_id');
+    }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Livro;
+use App\Services\LivrosRelacionadosService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -23,6 +24,13 @@ class LivroController extends Controller
             return redirect()->route('livros.show', ['id' => $livro->id, 'slug' => $correctSlug]);
         }
 
-        return view('livros.show', compact('livro'));
+        // Buscar livros relacionados
+        $relacionadosService = app(LivrosRelacionadosService::class);
+        $livrosRelacionados = $relacionadosService->encontrarRelacionados($livro, 4);
+
+        return view('livros.show', [
+            'livro' => $livro,
+            'livrosRelacionados' => $livrosRelacionados
+        ]);
     }
 }

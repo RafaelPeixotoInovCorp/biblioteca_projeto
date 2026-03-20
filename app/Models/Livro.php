@@ -99,4 +99,55 @@ class Livro extends Model
     {
         return $this->preco === null || $this->preco == 0;
     }
+
+    /**
+     * Relacionamento com reviews
+     */
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    /**
+     * Obter reviews ativas do livro
+     */
+    public function reviewsAtivas()
+    {
+        return $this->hasMany(Review::class)->where('estado', 'ativo');
+    }
+
+    /**
+     * Calcular média de avaliações do livro
+     */
+    public function getMediaAvaliacoesAttribute()
+    {
+        return $this->reviewsAtivas()->avg('nota') ?? 0;
+    }
+
+    /**
+     * Obter total de avaliações do livro
+     */
+    public function getTotalAvaliacoesAttribute()
+    {
+        return $this->reviewsAtivas()->count();
+    }
+
+    /**
+     * Relacionamento com notificações de disponibilidade
+     */
+    public function notificacoesDisponibilidade()
+    {
+        return $this->hasMany(NotificacaoDisponibilidade::class);
+    }
+
+    /**
+     * Verifica se um cidadão já tem notificação ativa para este livro
+     */
+    public function cidadaoTemNotificacao(User $cidadao): bool
+    {
+        return $this->notificacoesDisponibilidade()
+            ->where('cidadao_id', $cidadao->id)
+            ->where('notificado', false)
+            ->exists();
+    }
 }

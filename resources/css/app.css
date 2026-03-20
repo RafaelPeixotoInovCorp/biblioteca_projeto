@@ -6,3 +6,21 @@
 [x-cloak] {
     display: none;
 }
+
+/* Garantir que cards não tapam menus */
+.card {
+    z-index: 0 !important;
+    position: relative;
+}
+
+/* Garantir que dropdowns ficam por cima */
+.dropdown-content {
+    z-index: 9999 !important;
+}
+
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
