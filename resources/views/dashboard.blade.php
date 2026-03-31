@@ -1,6 +1,4 @@
 <x-app-layout>
-    <!-- Removido o slot "header" que mostrava "Dashboard" no topo -->
-
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- Mensagem de boas-vindas -->
@@ -130,6 +128,45 @@
                         </div>
                     </div>
                 @endif
+            </div>
+
+            <!-- NOVO: Card Encomendas (visível para todos) -->
+            <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 z-0">
+                <figure class="px-10 pt-10">
+                    <div class="w-24 h-24 rounded-full bg-primary/20 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                    </div>
+                </figure>
+                <div class="card-body items-center text-center">
+                    <h3 class="card-title text-2xl text-base-content">Encomendas</h3>
+                    <p class="text-base-content/70">
+                        @if(auth()->user()->isAdmin())
+                            Gerir todas as encomendas do sistema.
+                        @else
+                            Acompanhar o estado das suas encomendas.
+                        @endif
+                    </p>
+                    <div class="badge badge-primary mt-2">
+                        @php
+                            if(auth()->user()->isAdmin()) {
+                                $count = \App\Models\Encomenda::count();
+                            } else {
+                                $count = \App\Models\Encomenda::where('user_id', auth()->id())->count();
+                            }
+                        @endphp
+                        {{ $count }} encomenda(s)
+                    </div>
+                    <div class="card-actions mt-4">
+                        <a href="{{ route('encomendas.index') }}" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
+                            Ver Encomendas
+                        </a>
+                    </div>
+                </div>
             </div>
 
             <!-- Se não tem nenhuma permissão de visualização -->

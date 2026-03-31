@@ -8,7 +8,8 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\LivroController as PublicLivroController;
 use App\Http\Controllers\TwoFactorController;
-use App\Http\Controllers\RequisicaoController; // <-- ADICIONA ESTA LINHA
+use App\Http\Controllers\RequisicaoController;
+use App\Http\Controllers\StripeWebhookController;
 
 // Página pública
 Route::get('/', function () {
@@ -17,6 +18,29 @@ Route::get('/', function () {
 
 // Rotas protegidas por autenticação
 Route::middleware(['auth', 'verified'])->group(function () {
+
+    // Carrinho de Compras
+    Route::get('/carrinho', [App\Http\Controllers\CarrinhoController::class, 'index'])->name('carrinho.index');
+    Route::post('/carrinho/adicionar/{livro}', [App\Http\Controllers\CarrinhoController::class, 'adicionar'])->name('carrinho.adicionar');
+    Route::delete('/carrinho/remover/{item}', [App\Http\Controllers\CarrinhoController::class, 'remover'])->name('carrinho.remover');
+    Route::put('/carrinho/atualizar/{item}', [App\Http\Controllers\CarrinhoController::class, 'atualizar'])->name('carrinho.atualizar');
+    Route::get('/carrinho/checkout', [App\Http\Controllers\CarrinhoController::class, 'checkout'])->name('carrinho.checkout');
+
+    // Encomendas
+    Route::get('/encomendas', [EncomendaController::class, 'index'])->name('encomendas.index');
+    Route::get('/encomendas/{encomenda}', [EncomendaController::class, 'show'])->name('encomendas.show');
+    Route::post('/encomenda/{encomenda}/pagamento', [EncomendaController::class, 'pagamento'])->name('encomendas.pagamento');
+    Route::get('/encomenda/{encomenda}/confirmar-pagamento', [EncomendaController::class, 'confirmarPagamento'])->name('encomendas.pagamento.confirmar');
+    Route::post('/encomenda/pagamento/criar', [EncomendaController::class, 'criarPagamento'])->name('encomenda.pagamento.criar');
+
+    // Webhook do Stripe (sem auth, sem CSRF)
+    Route::post('/stripe/webhook', [StripeWebhookController::class, 'handle'])->name('stripe.webhook');
+
+    // Pagamento
+    Route::post('/encomendas/{encomenda}/pagamento', [App\Http\Controllers\EncomendaController::class, 'pagamento'])
+        ->name('encomendas.pagamento');
+
+    Route::post('/stripe/webhook', [StripeWebhookController::class, 'handle'])->name('stripe.webhook');
 
     // Rotas para 2FA
     Route::prefix('user')->name('profile.')->group(function () {
